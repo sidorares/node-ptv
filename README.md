@@ -13,7 +13,7 @@ Unofficial node.js client for Public Transport Victoria API
 
 ```
 
-To get api de id / key email APIKeyRequest@ptv.vic.gov.au with
+To get api devId / key please email APIKeyRequest@ptv.vic.gov.au with
 subject "PTV Timetable API - request for key"
 
 ## See also
