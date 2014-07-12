@@ -15,7 +15,7 @@ var request = require('request');
 var endpoint = "http://timetableapi.ptv.vic.gov.au";
 
 
-function createSignature(url, args) {
+function createSignature(key, url, args) {
   return crypto.createHmac('sha1', key)
     .update(urlFormat({pathname: '/v2' + url, query: args}))
     .digest('hex').toUpperCase();
@@ -31,7 +31,7 @@ PTV.prototype._callAPIutc = function(url, utc, cb) {
   var query = { devid: this.devId };
   if (utc)
     query.for_utc = utc.toISOString();
-  var signature = createSignature(url, query);
+  var signature = createSignature(this.key, url, query);
   query.signature = signature;
   request({
     url: endpoint + '/v2' + url,
