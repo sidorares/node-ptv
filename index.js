@@ -24,6 +24,7 @@ function createSignature(key, url, args) {
 function PTV(opts) {
   this.devId = opts.devId;
   this.key = opts.key;
+  this._activeReqs = 0;
 }
 
 PTV.prototype._callAPIutc = function(url, utc, cb) {
@@ -33,17 +34,20 @@ PTV.prototype._callAPIutc = function(url, utc, cb) {
     query.for_utc = utc.toISOString();
   var signature = createSignature(this.key, url, query);
   query.signature = signature;
+  this._activeReqs++;
+  var ptv = this;
   request({
     url: endpoint + '/v2' + url,
     qs: query
   }, function(error, response, body) {
+    ptv._activeReqs--;
     if (!error && response.statusCode == 200) {
       try {
         result = JSON.parse(body);
-        cb(null, result);
       } catch(e) {
-        cb(e);
+        return cb(e);
       }
+      cb(null, result);
     } else {
       if (error)
         return cb(error);
@@ -60,7 +64,10 @@ PTV.prototype._callAPI = function(url, cb) {
 PTV.prototype.stopsNearby = function(latitude, longitude, cb) {
   this._callAPI(
     util.format('/nearme/latitude/%d/longitude/%d', latitude, longitude),
-    cb
+    function(err, res) {
+      if (err) return cb(err);
+      return cb(null, res.map(function(s) { return s.result; }));
+    }
   );
 };
 
@@ -88,6 +95,8 @@ PTV.mode = {
   nightrider: 4
 };
 
+PTV.modeName = ['train', 'tram', 'bus', 'vline', 'nightrider'];
+
 PTV.prototype.broadNextDepartures = function(mode, stop, limit, date, cb) {
   if (!date)
     date = new Date();
@@ -97,6 +106,8 @@ PTV.prototype.broadNextDepartures = function(mode, stop, limit, date, cb) {
     date,
     function(err, res) {
       if (err) return cb(err);
+      //if (!res || !res.values)
+      //  console.log(res);
       cb(null, res.values);
     }
   );
@@ -110,7 +121,12 @@ PTV.prototype.specificNextDepartures = function(mode, line, stop,
     util.format('/mode/%d/line/%d/stop/%d/directionid/%d/departures/all/limit/%d',
       mode, line, stop, directionid, limit),
     date,
-    cb
+    function(err, res) {
+      if (err) return cb(err);
+      //if (!res || !res.values)
+      //  console.log(res);
+      cb(null, res.values);
+    }
   );
 };
 
@@ -121,7 +137,10 @@ PTV.prototype.stoppingPattern = function(mode, run, stop, date, cb) {
     util.format('/mode/%d/run/%d/stop/%d/stopping-pattern',
       mode, run, stop),
     date,
-    cb
+    function(err, res) {
+      if (err) return cb(err);
+      cb(null, res.values);
+    }
   );
 };
 
