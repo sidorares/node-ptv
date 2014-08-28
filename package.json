@@ -1,6 +1,6 @@
 {
   "name": "ptv",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Public Transport Victoria API client",
   "main": "index.js",
   "scripts": {
