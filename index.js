@@ -5,6 +5,7 @@ var util = require('util');
 var request = require('request');
 
 // stevage.github.io/PTV-API-doc
+// version 3 optimization by mellisdesigns
 
 // http://www.data.vic.gov.au/raw_data/ptv-timetable-api/6056
 // https://github.com/stevage/ptvpy/blob/master/ptvapi.py
@@ -13,11 +14,12 @@ var request = require('request');
 // proxy to https://developers.google.com/transit/gtfs/ ?
 
 var endpoint = "http://timetableapi.ptv.vic.gov.au";
+var version = 'v3';
 
 
 function createSignature(key, url, args) {
   return crypto.createHmac('sha1', key)
-    .update(urlFormat({pathname: '/v2' + url, query: args}))
+    .update(urlFormat({pathname: '/v3' + url, query: args}))
     .digest('hex').toUpperCase();
 }
 
@@ -37,7 +39,7 @@ PTV.prototype._callAPIutc = function(url, utc, cb) {
   this._activeReqs++;
   var ptv = this;
   request({
-    url: endpoint + '/v2' + url,
+    url: endpoint + '/' + version + url,
     qs: query
   }, function(error, response, body) {
     ptv._activeReqs--;
@@ -60,7 +62,19 @@ PTV.prototype._callAPI = function(url, cb) {
   this._callAPIutc(url, null, cb);
 };
 
+/* V3 API */
+PTV.prototype.stopsNearLocation = function(latitude, longitude, cb) {
+  this._callAPI(
+    util.format('/stops/location/%d,%d', latitude, longitude),
+    function(err, res) {
+      if (err) return cb(err);
+      return cb(null, res);
+    }
+  );
+};
 
+/* OLD V2 API */
+/******
 PTV.prototype.stopsNearby = function(latitude, longitude, cb) {
   this._callAPI(
     util.format('/nearme/latitude/%d/longitude/%d', latitude, longitude),
@@ -150,6 +164,7 @@ PTV.prototype.stopsOnALine = function(mode, line, cb) {
     cb
   );
 };
+*******/
 
 module.exports = PTV;
 module.exports.createClient = function(opts) {
