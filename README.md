@@ -1,6 +1,8 @@
 node-ptv
 ========
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/sidorares/node-ptv.svg)](https://greenkeeper.io/)
+
 Unofficial node.js client for Public Transport Victoria API
 
 ```js
